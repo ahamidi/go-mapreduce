@@ -5,48 +5,51 @@ import (
 	"testing"
 )
 
-type testMap struct {
-	inChan  chan interface{}
-	outChan chan interface{}
+type testMapReduceFunctions struct{}
+
+func (tmr *testMapReduceFunctions) Map(in chan interface{}, out chan interface{}) {
+	values := []int{}
+	for v := range in {
+		values = append(values, v.(int))
+	}
+	log.Println("Values:", values)
+
+	for v := range values {
+		out <- v
+	}
+	close(out)
 }
 
-func (tm *testMap) Input(ch chan interface{}) {
-	tm.inChan = ch
-}
-
-func (tm *testMap) Output(ch chan interface{}) {
-	tm.outChan = ch
-}
-
-func (tm *testMap) Process() {
-	go func() {
-		for v := range tm.inChan {
-			tm.outChan <- v
-		}
-		close(tm.outChan)
-	}()
+func (tmr *testMapReduceFunctions) Reduce(in chan interface{}) interface{} {
+	res := 0
+	for v := range in {
+		res += v.(int)
+	}
+	return res
 }
 
 func TestMap(t *testing.T) {
 	inChan := make(chan interface{})
 	outChan := make(chan interface{})
 
-	tm := &testMap{}
-	tm.Input(inChan)
-	tm.Output(outChan)
+	tm := &testMapReduceFunctions{}
 
-	go func(ch chan interface{}) {
+	config := Configuration{
+		mapperCount: 1,
+		inChan:      inChan,
+		outChan:     outChan,
+	}
+
+	// Feed input channel
+	go func(in chan interface{}) {
 		for i := 0; i < 10; i++ {
-			ch <- i
+			in <- i
 		}
-		close(ch)
+		close(in)
 	}(inChan)
 
-	tm.Process()
-
-	for v := range outChan {
-		log.Println(v)
-	}
+	result, _ := MapReduce(tm, config)
+	log.Println("Result:", result)
 
 	t.Fail()
 }

@@ -1,21 +1,23 @@
 package mapreduce
 
-type Map interface {
-	Output(chan interface{})
-	Input(chan interface{})
-	Process()
-}
-
-type Reduce interface {
-	Input(chan interface{})
-	Result() interface{}
+type MapReduceFunctions interface {
+	Map(in chan interface{}, out chan interface{})
+	Reduce(in chan interface{}) interface{}
 }
 
 type Configuration struct {
 	mapperCount int
+	inChan      chan interface{}
+	outChan     chan interface{}
 }
 
-func newMapReduce(m Map, r Reduce, config Configuration) error {
+func MapReduce(mr MapReduceFunctions, config Configuration) (interface{}, error) {
 
-	return nil
+	// Map
+	go mr.Map(config.inChan, config.outChan)
+
+	// Reduce
+	result := mr.Reduce(config.outChan)
+
+	return result, nil
 }
