@@ -1,16 +1,17 @@
 package mapreduce
 
 import (
+	"sync"
 	"testing"
 )
 
 var mr *MapReducer
 
-func (mr *MapReducer) Map(in chan interface{}, out chan interface{}) {
+func (mr *MapReducer) Map(in chan interface{}, out chan interface{}, wg *sync.WaitGroup) {
 	for v := range in {
 		out <- v
 	}
-	close(out)
+	wg.Done()
 }
 
 func (mr *MapReducer) Reduce(in chan interface{}) interface{} {
@@ -26,7 +27,7 @@ func TestMapReduce(t *testing.T) {
 	outChan := make(chan interface{})
 
 	config := Configuration{
-		mapperCount: 1,
+		mapperCount: 3,
 		inChan:      inChan,
 		outChan:     outChan,
 	}
@@ -35,7 +36,7 @@ func TestMapReduce(t *testing.T) {
 
 	// Feed input channel
 	go func(in chan interface{}) {
-		for i := 0; i < 10; i++ {
+		for i := 0; i < 100; i++ {
 			in <- i
 		}
 		close(in)
@@ -43,7 +44,7 @@ func TestMapReduce(t *testing.T) {
 
 	result, _ := mr.Run()
 
-	if result != 45 {
+	if result != 4950 {
 		t.Fail()
 	}
 }
