@@ -1,8 +1,12 @@
 package mapreduce
 
-type MapReduceFunctions interface {
+type MapReduce interface {
 	Map(in chan interface{}, out chan interface{})
 	Reduce(in chan interface{}) interface{}
+}
+
+type MapReducer struct {
+	Config Configuration
 }
 
 type Configuration struct {
@@ -11,13 +15,20 @@ type Configuration struct {
 	outChan     chan interface{}
 }
 
-func MapReduce(mr MapReduceFunctions, config Configuration) (interface{}, error) {
+func (mr *MapReducer) Run() (interface{}, error) {
 
 	// Map
-	go mr.Map(config.inChan, config.outChan)
+	go mr.Map(mr.Config.inChan, mr.Config.outChan)
 
 	// Reduce
-	result := mr.Reduce(config.outChan)
+	result := mr.Reduce(mr.Config.outChan)
 
 	return result, nil
+}
+
+func newMapReducer(config Configuration) *MapReducer {
+
+	return &MapReducer{
+		Config: config,
+	}
 }

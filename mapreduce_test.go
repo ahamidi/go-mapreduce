@@ -1,26 +1,19 @@
 package mapreduce
 
 import (
-	"log"
 	"testing"
 )
 
-type testMapReduceFunctions struct{}
+var mr *MapReducer
 
-func (tmr *testMapReduceFunctions) Map(in chan interface{}, out chan interface{}) {
-	values := []int{}
+func (mr *MapReducer) Map(in chan interface{}, out chan interface{}) {
 	for v := range in {
-		values = append(values, v.(int))
-	}
-	log.Println("Values:", values)
-
-	for v := range values {
 		out <- v
 	}
 	close(out)
 }
 
-func (tmr *testMapReduceFunctions) Reduce(in chan interface{}) interface{} {
+func (mr *MapReducer) Reduce(in chan interface{}) interface{} {
 	res := 0
 	for v := range in {
 		res += v.(int)
@@ -28,17 +21,17 @@ func (tmr *testMapReduceFunctions) Reduce(in chan interface{}) interface{} {
 	return res
 }
 
-func TestMap(t *testing.T) {
+func TestMapReduce(t *testing.T) {
 	inChan := make(chan interface{})
 	outChan := make(chan interface{})
-
-	tm := &testMapReduceFunctions{}
 
 	config := Configuration{
 		mapperCount: 1,
 		inChan:      inChan,
 		outChan:     outChan,
 	}
+
+	mr = newMapReducer(config)
 
 	// Feed input channel
 	go func(in chan interface{}) {
@@ -48,16 +41,9 @@ func TestMap(t *testing.T) {
 		close(in)
 	}(inChan)
 
-	result, _ := MapReduce(tm, config)
-	log.Println("Result:", result)
+	result, _ := mr.Run()
 
-	t.Fail()
-}
-
-func TestReduce(t *testing.T) {
-
-}
-
-func TestMapReduce(t *testing.T) {
-
+	if result != 45 {
+		t.Fail()
+	}
 }
