@@ -20,6 +20,8 @@ The goal of `go-mapreduce` is to simplify the use of the common map/reduce patte
 
 - [x] Map Function
 - [x] Reduce Function
+- [ ] Report process stats
 - [ ] Docs
 - [x] Tests
+- [ ] Benchmarks
 
