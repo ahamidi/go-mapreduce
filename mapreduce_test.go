@@ -1,17 +1,15 @@
 package mapreduce
 
 import (
-	"sync"
 	"testing"
 )
 
 type MapReducer struct{}
 
-func (mr *MapReducer) Map(in chan interface{}, out chan interface{}, wg *sync.WaitGroup) {
+func (mr *MapReducer) Map(in chan interface{}, out chan interface{}) {
 	for v := range in {
 		out <- v
 	}
-	wg.Done()
 }
 
 func (mr *MapReducer) Reduce(in chan interface{}) interface{} {

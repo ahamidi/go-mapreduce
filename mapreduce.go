@@ -5,7 +5,7 @@ import (
 )
 
 type MapReduce interface {
-	Map(in chan interface{}, out chan interface{}, wg *sync.WaitGroup)
+	Map(in chan interface{}, out chan interface{})
 	Reduce(in chan interface{}) interface{}
 }
 
@@ -25,8 +25,11 @@ func Run(mr MapReduce, c *Configuration) (interface{}, error) {
 
 	// Map
 	for i := 0; i < c.MapperCount; i++ {
-		wg.Add(1)
-		go mr.Map(c.InChan, c.OutChan, &wg)
+		go func(wg *sync.WaitGroup) {
+			wg.Add(1)
+			mr.Map(c.InChan, c.OutChan)
+			wg.Done()
+		}(&wg)
 	}
 
 	go func(w *sync.WaitGroup) {
