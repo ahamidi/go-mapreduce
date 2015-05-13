@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-var mr *MapReducer
+type MapReducer struct{}
 
 func (mr *MapReducer) Map(in chan interface{}, out chan interface{}, wg *sync.WaitGroup) {
 	for v := range in {
@@ -26,13 +26,10 @@ func TestMapReduce(t *testing.T) {
 	inChan := make(chan interface{})
 	outChan := make(chan interface{})
 
-	config := Configuration{
-		mapperCount: 3,
-		inChan:      inChan,
-		outChan:     outChan,
-	}
-
-	mr = newMapReducer(config)
+	conf := NewMapReduceConfig()
+	conf.InChan = inChan
+	conf.OutChan = outChan
+	conf.MapperCount = 3
 
 	// Feed input channel
 	go func(in chan interface{}) {
@@ -42,7 +39,9 @@ func TestMapReduce(t *testing.T) {
 		close(in)
 	}(inChan)
 
-	result, _ := mr.Run()
+	mr := &MapReducer{}
+
+	result, _ := Run(mr, conf)
 
 	if result != 4950 {
 		t.Fail()

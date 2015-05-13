@@ -9,43 +9,36 @@ type MapReduce interface {
 	Reduce(in chan interface{}) interface{}
 }
 
-type MapReducer struct {
-	Config Configuration
-}
-
 type Configuration struct {
-	mapperCount int
-	inChan      chan interface{}
-	outChan     chan interface{}
+	MapperCount int
+	InChan      chan interface{}
+	OutChan     chan interface{}
 }
 
-func (mr *MapReducer) Run() (interface{}, error) {
+func NewMapReduceConfig() *Configuration {
+	return &Configuration{}
+}
+
+func Run(mr MapReduce, c *Configuration) (interface{}, error) {
 
 	var wg sync.WaitGroup
 
 	// Map
-	for i := 0; i < mr.Config.mapperCount; i++ {
+	for i := 0; i < c.MapperCount; i++ {
 		wg.Add(1)
-		go mr.Map(mr.Config.inChan, mr.Config.outChan, &wg)
+		go mr.Map(c.InChan, c.OutChan, &wg)
 	}
 
 	go func(w *sync.WaitGroup) {
 		w.Wait()
-		close(mr.Config.outChan)
+		close(c.OutChan)
 	}(&wg)
 
 	// Reduce
 	resultChan := make(chan interface{}, 1)
 	go func(res chan interface{}) {
-		res <- mr.Reduce(mr.Config.outChan)
+		res <- mr.Reduce(c.OutChan)
 	}(resultChan)
 
 	return <-resultChan, nil
-}
-
-func newMapReducer(config Configuration) *MapReducer {
-
-	return &MapReducer{
-		Config: config,
-	}
 }
