@@ -16,7 +16,14 @@ type Configuration struct {
 }
 
 func NewMapReduceConfig() *Configuration {
-	return &Configuration{}
+	inChan := make(chan interface{})
+	outChan := make(chan interface{})
+
+	return &Configuration{
+		MapperCount: 1,
+		InChan:      inChan,
+		OutChan:     outChan,
+	}
 }
 
 func Run(mr MapReduce, c *Configuration) (interface{}, error) {

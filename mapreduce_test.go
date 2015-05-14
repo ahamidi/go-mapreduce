@@ -21,13 +21,8 @@ func (mr *MapReducer) Reduce(in chan interface{}) interface{} {
 }
 
 func TestMapReduce(t *testing.T) {
-	inChan := make(chan interface{})
-	outChan := make(chan interface{})
 
 	conf := NewMapReduceConfig()
-	conf.InChan = inChan
-	conf.OutChan = outChan
-	conf.MapperCount = 3
 
 	// Feed input channel
 	go func(in chan interface{}) {
@@ -35,7 +30,7 @@ func TestMapReduce(t *testing.T) {
 			in <- i
 		}
 		close(in)
-	}(inChan)
+	}(conf.InChan)
 
 	mr := &MapReducer{}
 
