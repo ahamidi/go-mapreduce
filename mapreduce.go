@@ -1,20 +1,27 @@
+// Package mapreduce provides a simple abstraction for the general Map/Reduce
+// pattern.
 package mapreduce
 
 import (
 	"sync"
 )
 
+// In order to utilize this package you must create a struct that implements
+// the following interface.
 type MapReduce interface {
 	Map(in chan interface{}, out chan interface{})
 	Reduce(in chan interface{}) interface{}
 }
 
+// Configuration used by the Map Reducer.
 type Configuration struct {
 	MapperCount int
 	InChan      chan interface{}
 	OutChan     chan interface{}
 }
 
+// NewMapReduceConfig returns a MapReduce Configuration struct with sensible
+// defaults.
 func NewMapReduceConfig() *Configuration {
 	inChan := make(chan interface{})
 	outChan := make(chan interface{})
@@ -26,6 +33,7 @@ func NewMapReduceConfig() *Configuration {
 	}
 }
 
+// Run executes the MapReduce process.
 func Run(mr MapReduce, c *Configuration) (interface{}, error) {
 
 	var wg sync.WaitGroup
