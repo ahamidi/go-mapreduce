@@ -53,10 +53,6 @@ func Run(mr MapReduce, c *Configuration) (interface{}, error) {
 	}(&wg)
 
 	// Reduce
-	resultChan := make(chan interface{}, 1)
-	go func(res chan interface{}) {
-		res <- mr.Reduce(c.OutChan)
-	}(resultChan)
-
-	return <-resultChan, nil
+	res := mr.Reduce(c.OutChan)
+	return res, nil
 }
