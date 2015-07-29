@@ -39,9 +39,9 @@ func Run(mr MapReduce, c *Configuration) (interface{}, error) {
 	var wg sync.WaitGroup
 
 	// Map
+	wg.Add(c.MapperCount)
 	for i := 0; i < c.MapperCount; i++ {
 		go func(wg *sync.WaitGroup) {
-			wg.Add(1)
 			mr.Map(c.InChan, c.OutChan)
 			wg.Done()
 		}(&wg)
